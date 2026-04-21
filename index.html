@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHOPYNG – Modern Groceries Delivered Fast</title>
+  <meta name="description" content="SHOPYNG delivers the freshest groceries to your door. Shop organic produce, dairy, snacks and more with free delivery on orders over $200." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="shopyng.png" />
+</head>
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loading-screen">
+    <div class="loading-container">
+      <img src="shopyng.png" alt="Loading" class="logo-animation" />
+    </div>
+  </div>
+
+  <!-- HEADER / FLOATING NAVBAR -->
+  <header class="header" id="header">
+    <div class="container header-inner">
+
+      <!-- Logo -->
+      <a href="#" class="logo" id="logo-link">
+        <img src="shopyng.png" alt="SHOPYNG Logo" class="logo-img" />
+      </a>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" id="search-input" class="search-input" placeholder="Search products..." />
+        <button class="search-btn" id="search-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+      </div>
+
+      <!-- Actions -->
+      <div class="header-actions">
+        <button class="icon-btn cart-btn" id="cart-btn" title="Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </button>
+        
+        <button class="profile-btn" id="profile-btn" title="Profile">
+          <img src="profile.png" alt="Profile" class="profile-pic" />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="container">
+
+      <!-- HERO BANNER -->
+      <section class="hero-section" id="hero-banner">
+        <div class="hero-content">
+          <div class="hero-badge">🚀 Fast Delivery</div>
+          <h1 class="hero-title">
+            Get <span class="hero-highlight">free delivery</span> on<br/>shopping $200
+          </h1>
+          <p class="hero-subtitle">Get the freshest groceries delivered right to your home. Save time, skip the lines, and enjoy the convenience of quick, efficient delivery.</p>
+          <div class="hero-cta">
+            <button class="btn-primary" id="hero-learn-more">Learn More →</button>
+            <button class="btn-ghost" id="hero-shop-now">Shop Now</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-num">10K+</span>
+              <span class="stat-label">Products</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num">25min</span>
+              <span class="stat-label">Avg Delivery</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num">4.8★</span>
+              <span class="stat-label">Rating</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-circle hero-circle-1"></div>
+          <div class="hero-circle hero-circle-2"></div>
+          <!-- Floating product badges -->
+          <div class="float-badge badge-organic">🌿 100% Organic</div>
+          <div class="float-badge badge-fresh">✨ Farm Fresh</div>
+          <!-- Vegetable emoji art instead of img -->
+          <div class="hero-emoji-art">
+            <div class="veggie" style="font-size:7rem;animation-delay:0s">🥗</div>
+            <div class="veggie row2">
+              <span style="font-size:3.5rem;animation-delay:.3s">🫑</span>
+              <span style="font-size:3.5rem;animation-delay:.5s">🥑</span>
+              <span style="font-size:3.5rem;animation-delay:.7s">🍋</span>
+            </div>
+            <div class="veggie row2">
+              <span style="font-size:2.8rem;animation-delay:.2s">🍅</span>
+              <span style="font-size:2.8rem;animation-delay:.6s">🥦</span>
+              <span style="font-size:2.8rem;animation-delay:.9s">🌽</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATEGORIES STRIP -->
+      <section class="categories-section" id="categories-section">
+        <div class="categories-scroll">
+          <button class="cat-chip active" data-cat="all" id="cat-all">All Categories</button>
+          <button class="cat-chip" data-cat="vegetables" id="cat-vegetables">🥦 Vegetables</button>
+          <button class="cat-chip" data-cat="fruits" id="cat-fruits">🍎 Fruits</button>
+          <button class="cat-chip" data-cat="dairy" id="cat-dairy">🥛 Dairy</button>
+          <button class="cat-chip" data-cat="snacks" id="cat-snacks">🍿 Snacks</button>
+          <button class="cat-chip" data-cat="beverages" id="cat-beverages">🧃 Beverages</button>
+          <button class="cat-chip" data-cat="meat" id="cat-meat">🥩 Meat</button>
+          <button class="cat-chip" data-cat="grains" id="cat-grains">🌾 Grains</button>
+        </div>
+      </section>
+
+      <!-- FILTERS & PRODUCTS HEADER -->
+      <div class="products-header" id="products-header">
+        <h2 class="section-title">All Products</h2>
+        <div class="filters-row">
+          <div class="sort-dropdown">
+            <button class="sort-btn" id="sort-btn">Sort by <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="dropdown-menu" id="dropdown-menu">
+              <a href="#" class="dropdown-item" data-filter="price">Price</a>
+              <a href="#" class="dropdown-item" data-filter="review">Review</a>
+              <a href="#" class="dropdown-item" data-filter="color">Color</a>
+              <a href="#" class="dropdown-item" data-filter="offer">Offer</a>
+              <a href="#" class="dropdown-item" data-filter="brands">Brands</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCT GRID -->
+      <section class="products-grid" id="products-grid">
+        <!-- Populated by JS -->
+      </section>
+
+      <!-- PROMO BANNER 2 -->
+      <section class="promo-strip" id="promo-strip">
+        <div class="promo-card promo-teal">
+          <div class="promo-content">
+            <span class="promo-eyebrow">Limited Time</span>
+            <h3>Buy 2 Get 1 <span>FREE</span></h3>
+            <p>On all organic produce this weekend only</p>
+            <button class="btn-white" id="promo-btn-1">Grab Deal →</button>
+          </div>
+          <div class="promo-icon">🥬</div>
+        </div>
+        <div class="promo-card promo-orange">
+          <div class="promo-content">
+            <span class="promo-eyebrow">New Arrival</span>
+            <h3>Fresh <span>Exotic</span> Fruits</h3>
+            <p>Sourced directly from farms worldwide</p>
+            <button class="btn-white" id="promo-btn-2">Explore Now →</button>
+          </div>
+          <div class="promo-icon">🍓</div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" id="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+           <img src="shopyng.png" alt="SHOPYNG Logo" class="footer-logo-img" />
+        </a>
+        <p class="footer-desc">Get the freshest groceries delivered right to your home. Fast, fresh, and always on time.</p>
+        <div class="social-links">
+          <a href="#" class="social-btn" id="social-fb">f</a>
+          <a href="#" class="social-btn" id="social-ig">📷</a>
+          <a href="#" class="social-btn" id="social-tw">𝕏</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Shop</h4>
+          <a href="#">All Products</a>
+          <a href="#">Deals</a>
+          <a href="#">New Arrivals</a>
+          <a href="#">Best Sellers</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About Us</a>
+          <a href="#">Careers</a>
+          <a href="#">Blog</a>
+          <a href="#">Press</a>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a href="#">Help Center</a>
+          <a href="#">Returns</a>
+          <a href="#">Track Order</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SHOPYNG. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>My Cart</h3>
+      <button class="cart-close" id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty" id="cart-empty">
+        <div style="font-size:4rem">🛒</div>
+        <p>Your cart is empty</p>
+        <span>Add some fresh items!</span>
+      </div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none">
+      <div class="cart-total">
+        <span>Total</span>
+        <span class="total-price" id="cart-total-price">$0.00</span>
+      </div>
+      <button class="btn-primary full-width" id="checkout-btn">Checkout →</button>
+    </div>
+  </aside>
+
+  <!-- PROFILE DRAWER -->
+  <aside class="profile-drawer" id="profile-drawer">
+    <div class="profile-header">
+      <h3>My Profile</h3>
+      <button class="profile-close" id="profile-close">✕</button>
+    </div>
+    <div class="profile-content">
+      <div class="profile-avatar-section">
+        <img src="profile.png" alt="Profile" class="profile-avatar" />
+        <div class="profile-info">
+          <h4>John Doe</h4>
+          <p>john.doe@email.com</p>
+        </div>
+      </div>
+      <div class="profile-options">
+        <a href="#" class="profile-option">
+          <span class="option-icon">👤</span>
+          <span class="option-text">Edit Profile</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">📍</span>
+          <span class="option-text">My Addresses</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">📦</span>
+          <span class="option-text">Orders</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">❤️</span>
+          <span class="option-text">Favorites</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">🎁</span>
+          <span class="option-text">Rewards</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">⚙️</span>
+          <span class="option-text">Settings</span>
+        </a>
+        <a href="#" class="profile-option">
+          <span class="option-icon">❓</span>
+          <span class="option-text">Help & Support</span>
+        </a>
+      </div>
+      <button class="btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>
