@@ -1,0 +1,25 @@
+{
+  "name": "shopyng",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:buyer": "npm --workspace=buyer-app run dev",
+    "dev:vendor": "npm --workspace=vendor-panel run dev",
+    "dev:admin": "npm --workspace=admin-panel run dev",
+    "dev:backend": "npm --workspace=backend run dev",
+    "build": "npm-run-all --parallel build:*",
+    "build:buyer": "npm --workspace=buyer-app run build",
+    "build:vendor": "npm --workspace=vendor-panel run build",
+    "build:admin": "npm --workspace=admin-panel run build",
+    "build:backend": "npm --workspace=backend run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "npm-run-all": "^4.1.5"
+  }
+}
