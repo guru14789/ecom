@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-main: #01406D;
+  --primary-light: #01B4BA;
+  --primary-dark: #012a4a;
+  --bg-light: #F5FEFE;
+  --bg-panel: #EFF8F8;
+  --accent-orange: #FF7A0F;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+
+  /* Teal / Navy shorthands for Tailwind references */
+  --color-teal: #01B4BA;
+  --color-navy: #01406D;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-light);
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* ─── Typography ─────────────────────────────────────────────── */
+.font-artz { font-family: var(--font-heading); }
+.font-inter { font-family: var(--font-body); }
+
+/* ─── Custom Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: var(--color-teal); border-radius: 8px; opacity: 0.7; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-navy); }
+
+/* ─── Sidebar ────────────────────────────────────────────────── */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.sidebar-item:hover {
+  background: rgba(1, 180, 186, 0.08);
+  color: var(--color-teal);
+  transform: translateX(2px);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(1, 64, 109, 0.12), rgba(1, 180, 186, 0.08));
+  color: var(--color-navy);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-teal);
+  padding-left: 17px;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────── */
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 8px 24px rgba(1, 64, 109, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--color-navy);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(1, 64, 109, 0.3);
+}
+
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-secondary {
+  background: rgba(1, 180, 186, 0.1);
+  color: var(--color-teal);
+  padding: 10px 20px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover { background: rgba(1, 180, 186, 0.18); }
+
+/* ─── Tables ─────────────────────────────────────────────────── */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  padding: 12px 16px;
+  background: #f8fafc;
+}
+
+td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+tr:last-child td { border-bottom: none; }
+
+tbody tr {
+  transition: background 0.1s ease;
+}
+
+tbody tr:hover { background: #f8fafc; }
+
+/* ─── Form Inputs ────────────────────────────────────────────── */
+input, textarea, select {
+  font-family: var(--font-body);
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.3s ease both; }
+.animate-fade-in   { animation: fadeIn 0.15s ease both; }
+.animate-spin      { animation: spin 0.8s linear infinite; }
+
+.skeleton {
+  background: linear-gradient(90deg, #E0EFEF 25%, #f1f5f9 50%, #E0EFEF 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}

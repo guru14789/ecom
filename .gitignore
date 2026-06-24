@@ -2,3 +2,12 @@ node_modules/
 dist/
 .env
 .DS_Store
+mongodb-data/
+.agents/
+scratch/
+*.docx
+*.log
+skills-lock.json
+opencode.json
+docker-compose.yml
+**/dist/

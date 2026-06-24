@@ -2,67 +2,119 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
-import bodyParser from 'body-parser';
-import { OAuth2Client } from 'google-auth-library';
+import { apiLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiter';
+import mongoose from 'mongoose';
+import { env } from './config/env';
 
-dotenv.config();
+import authRouter from './routes/auth';
+import authCognitoRouter from './routes/auth-cognito';
+import productRouter from './routes/products';
+import cartRouter from './routes/cart';
+import orderRouter from './routes/orders';
+import groupRouter from './routes/groups';
+import userRouter from './routes/users';
+import vendorRouter from './routes/vendor';
+import adminRouter from './routes/admin';
+import webhookRouter from './routes/webhook';
+import paymentRouter from './routes/payments';
+import reviewRouter from './routes/reviews';
+import questionRouter from './routes/questions';
+import checkoutRouter from './routes/checkout';
+import returnRouter from './routes/returns';
+import disputeRouter from './routes/disputes';
+import payoutRouter from './routes/payouts';
+import flashSaleRouter from './routes/flash-sales';
+import campaignRouter from './routes/campaigns';
+import notificationTemplateRouter from './routes/notification-templates';
+import { initPostgres } from './config/postgres';
+import { initDynamoDBTables } from './services/dynamodb.service';
 
 const app = express();
-const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+mongoose.connect(env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+initPostgres()
+  .then(() => console.log('PostgreSQL connected'))
+  .catch((err: Error) => console.warn('PostgreSQL unavailable (non-fatal):', err.message));
+
+initDynamoDBTables()
+  .then(() => console.log('DynamoDB tables initialized'))
+  .catch((err: Error) => console.warn('DynamoDB unavailable (non-fatal):', err.message));
+
 app.use(helmet());
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
-
-// Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ success: false, message: 'Not Found' });
-});
-
-// Global error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err);
-  const status = err.status || 500;
-  res.status(status).json({ success: false, message: err.message || 'Internal Server Error' });
-});
-
-// Google login token verification
-app.post('/api/google-login', async (req, res) => {
-    const { token } = req.body;
-    try {
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: 'YOUR_GOOGLE_CLIENT_ID',
-        });
-        const payload = ticket.getPayload();
-        res.status(200).json({
-            message: 'Login successful',
-            user: payload,
-        });
-    } catch (error) {
-        res.status(401).json({
-            message: 'Invalid token',
-        });
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'http://localhost:3100',
+  'http://localhost:3200',
+];
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Origin ${origin} not allowed by CORS`));
     }
+  },
+  credentials: true,
+}));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req: any, _res: any, buf: Buffer) => {
+    req.rawBody = buf.toString();
+  },
+}));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
+
+app.use(apiLimiter);
+
+app.get('/health', async (_req: Request, res: Response) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'ok' : 'error';
+  res.json({
+    status: 'healthy',
+    version: process.env.npm_package_version || '1.0.0',
+    timestamp: new Date().toISOString(),
+    services: { database: dbStatus },
+  });
+});
+
+app.use('/api/auth', authLimiter, authRouter);
+app.use('/api/auth/cognito', authCognitoRouter);
+app.use('/api/products', productRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/orders', orderRouter);
+app.use('/api/groups', groupRouter);
+app.use('/api/users', userRouter);
+app.use('/api/vendor', vendorRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/webhook', webhookRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/reviews', reviewRouter);
+app.use('/api/questions', questionRouter);
+app.use('/api/checkout', checkoutRouter);
+app.use('/api/returns', returnRouter);
+app.use('/api/disputes', disputeRouter);
+app.use('/api/payouts', payoutRouter);
+app.use('/api/flash-sales', flashSaleRouter);
+app.use('/api/campaigns', campaignRouter);
+app.use('/api/notification-templates', notificationTemplateRouter);
+
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Route not found', statusCode: 404 } });
+});
+
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Error:', err);
+  const statusCode = err.statusCode || 500;
+  const code = err.code || 'INTERNAL_ERROR';
+  const message = err.message || 'Internal server error';
+
+  res.status(statusCode).json({
+    success: false,
+    error: { code, message, statusCode, details: err.details || undefined },
+  });
 });
 
 export default app;

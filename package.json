@@ -7,12 +7,12 @@
     "shared"
   ],
   "scripts": {
-    "dev": "concurrently \"npm:dev:*\"",
+    "dev": "concurrently \"npm:dev:buyer\" \"npm:dev:vendor\" \"npm:dev:admin\" \"npm:dev:backend\"",
     "dev:buyer": "npm --workspace=buyer-app run dev",
     "dev:vendor": "npm --workspace=vendor-panel run dev",
     "dev:admin": "npm --workspace=admin-panel run dev",
     "dev:backend": "npm --workspace=backend run dev",
-    "build": "npm-run-all --parallel build:*",
+    "build": "npm-run-all --parallel build:buyer build:vendor build:admin build:backend",
     "build:buyer": "npm --workspace=buyer-app run build",
     "build:vendor": "npm --workspace=vendor-panel run build",
     "build:admin": "npm --workspace=admin-panel run build",
