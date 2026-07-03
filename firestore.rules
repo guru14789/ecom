@@ -1,0 +1,162 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper functions ──────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (getUserRole() == 'platform_admin' || getUserRole() == 'super_admin');
+    }
+
+    function isVendor() {
+      return isAuthenticated() &&
+        (getUserRole() == 'vendor' || getUserRole() == 'vendor_admin');
+    }
+
+    function getVendorId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.vendorId;
+    }
+
+    // ─── Users ────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Vendors ──────────────────────────────────────────────────────────
+    match /vendors/{vendorId} {
+      allow read: if true; // public vendor profiles
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || (isVendor() && getVendorId() == vendorId);
+      allow delete: if isAdmin();
+
+      match /subscription/{doc} {
+        allow read: if isAdmin() || (isVendor() && getVendorId() == vendorId);
+        allow write: if isAdmin();
+      }
+    }
+
+    // ─── Products ─────────────────────────────────────────────────────────
+    match /products/{productId} {
+      allow read: if true; // public
+      allow create, update: if isAdmin() ||
+        (isVendor() && getVendorId() == resource.data.vendorId);
+      allow delete: if isAdmin();
+    }
+
+    // ─── Categories ───────────────────────────────────────────────────────
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ─── Orders ───────────────────────────────────────────────────────────
+    match /orders/{orderId} {
+      allow read: if isAdmin() ||
+        isOwner(resource.data.userId) ||
+        (isVendor() && resource.data.vendorOrders.hasAny([{'vendorId': getVendorId()}]));
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() ||
+        isOwner(resource.data.userId) ||
+        (isVendor() && resource.data.vendorOrders.hasAny([{'vendorId': getVendorId()}]));
+      allow delete: if isAdmin();
+    }
+
+    // ─── Cart ─────────────────────────────────────────────────────────────
+    match /cart/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // ─── Reviews ─────────────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() ||
+        isOwner(resource.data.userId) ||
+        (isVendor() && getVendorId() == resource.data.vendorId); // vendor reply
+      allow delete: if isAdmin();
+    }
+
+    // ─── Coupons ─────────────────────────────────────────────────────────
+    match /coupons/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() ||
+        (isVendor() && resource.data.vendorId == getVendorId());
+    }
+
+    // ─── Notifications ────────────────────────────────────────────────────
+    match /notifications/{notificationId} {
+      allow read, update: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Return requests ─────────────────────────────────────────────────
+    match /return_requests/{requestId} {
+      allow read: if isAdmin() || isOwner(resource.data.userId) ||
+        (isVendor() && getVendorId() == resource.data.vendorId);
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() ||
+        (isVendor() && getVendorId() == resource.data.vendorId);
+    }
+
+    // ─── Disputes ────────────────────────────────────────────────────────
+    match /disputes/{disputeId} {
+      allow read: if isAdmin() || isOwner(resource.data.buyerId) ||
+        (isVendor() && getVendorId() == resource.data.vendorId);
+      allow create: if isAuthenticated();
+      allow update: if isAdmin();
+    }
+
+    // ─── Flash sales ──────────────────────────────────────────────────────
+    match /flash_sales/{saleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ─── Campaigns ────────────────────────────────────────────────────────
+    match /campaigns/{campaignId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ─── Group sessions ───────────────────────────────────────────────────
+    match /group_sessions/{sessionId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() || isAdmin();
+    }
+
+    // ─── Payouts ─────────────────────────────────────────────────────────
+    match /payouts/{payoutId} {
+      allow read: if isAdmin() || (isVendor() && getVendorId() == resource.data.vendorId);
+      allow write: if isAdmin();
+    }
+
+    // ─── Audit log ────────────────────────────────────────────────────────
+    match /audit_log/{entryId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin(); // written server-side only
+      allow update, delete: if false;
+    }
+
+    // ─── Health check ─────────────────────────────────────────────────────
+    match /_health/{doc} {
+      allow read, write: if false; // server-side only
+    }
+  }
+}

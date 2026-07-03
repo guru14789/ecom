@@ -1,29 +1,23 @@
-import { query } from '../config/postgres';
+import { logAudit } from '../lib/firestore/audit';
 
-export interface AuditLogEntry {
+export interface AuditParams {
   actorId: string;
-  actorType: 'admin' | 'vendor' | 'system' | 'buyer';
+  actorType: 'buyer' | 'vendor' | 'admin' | 'system';
   action: string;
-  resourceType: string;
-  resourceId: string;
+  resourceType?: string;
+  resourceId?: string;
   metadata?: Record<string, unknown>;
+  ipAddress?: string;
 }
 
-export async function logAudit(entry: AuditLogEntry): Promise<void> {
-  try {
-    await query(
-      `INSERT INTO activity_log (actor_id, actor_type, action, resource_type, resource_id, metadata, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-      [
-        entry.actorId,
-        entry.actorType,
-        entry.action,
-        entry.resourceType,
-        entry.resourceId,
-        entry.metadata ? JSON.stringify(entry.metadata) : null,
-      ]
-    );
-  } catch (err) {
-    console.error('Audit log write failed (non-fatal):', err);
-  }
+/**
+ * Log an audit event to Firestore audit_log collection.
+ * Non-blocking — errors are swallowed to avoid breaking request flow.
+ */
+export function auditLog(params: AuditParams): void {
+  logAudit(params).catch((err) =>
+    console.error('Audit log error:', err)
+  );
 }
+
+export default auditLog;

@@ -13,7 +13,11 @@ import {
   sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
-import { app } from './index';
+import { initializeApp, getApps } from 'firebase/app';
+import firebaseConfig from './config';
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+
 
 export const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();

@@ -1,133 +1,80 @@
-import nodemailer from 'nodemailer';
-import { NotificationTemplate } from '../models/NotificationTemplate';
-import { env } from '../config/env';
+import { messaging } from '../lib/firestore/client';
+import { createNotification } from '../lib/firestore/notifications';
 
-interface SendNotificationParams {
-  trigger: string;
-  recipient: { email?: string; phone?: string; userId?: string };
-  variables: Record<string, string>;
+export interface PushPayload {
+  userId: string;
+  fcmToken?: string;
+  title: string;
+  body: string;
+  type: string;
+  data?: Record<string, string>;
 }
 
-let transporter: nodemailer.Transporter | null = null;
+/**
+ * Send a Firebase Cloud Messaging push notification and persist it in Firestore.
+ */
+export async function sendPushNotification(payload: PushPayload): Promise<void> {
+  // Persist to notifications collection
+  await createNotification({
+    userId: payload.userId,
+    title: payload.title,
+    body: payload.body,
+    type: payload.type,
+    data: payload.data,
+  });
 
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST || 'smtp.ethereal.email',
-      port: parseInt(env.SMTP_PORT || '587'),
-      secure: env.SMTP_SECURE === 'true',
-      auth: {
-        user: env.SMTP_USER || '',
-        pass: env.SMTP_PASS || '',
-      },
-    });
-  }
-  return transporter;
-}
-
-function interpolate(template: string, variables: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => variables[key] || `{{${key}}}`);
-}
-
-export async function sendNotification(params: SendNotificationParams): Promise<void> {
-  const template = await NotificationTemplate.findOne({ trigger: params.trigger, isActive: true });
-  if (!template) {
-    console.warn(`No active notification template for trigger: ${params.trigger}`);
-    return;
-  }
-
-  const title = interpolate(template.title, params.variables);
-  const body = interpolate(template.body, params.variables);
-
-  // Email
-  if (template.channels.email && params.recipient.email && template.emailSubject) {
+  // Send FCM if token available
+  if (payload.fcmToken) {
     try {
-      const html = template.emailHtml
-        ? interpolate(template.emailHtml, params.variables)
-        : `<p>${body.replace(/\n/g, '<br/>')}</p>`;
-
-      await getTransporter().sendMail({
-        from: env.SMTP_FROM || 'noreply@shopyng.com',
-        to: params.recipient.email,
-        subject: interpolate(template.emailSubject, params.variables),
-        html,
+      await messaging.send({
+        token: payload.fcmToken,
+        notification: { title: payload.title, body: payload.body },
+        data: payload.data,
+        android: { priority: 'high' },
+        apns: { payload: { aps: { sound: 'default', badge: 1 } } },
       });
-      console.log(`Email sent to ${params.recipient.email} for trigger: ${params.trigger}`);
     } catch (err) {
-      console.error(`Failed to send email for trigger ${params.trigger}:`, err);
+      console.warn('FCM send failed (non-fatal):', (err as Error).message);
     }
   }
-
-  // SMS
-  if (template.channels.sms && params.recipient.phone) {
-    try {
-      const smsBody = template.smsBody
-        ? interpolate(template.smsBody, params.variables)
-        : body;
-      // Placeholder: integrate with SMS provider (e.g., Twilio, AWS SNS)
-      console.log(`SMS to ${params.recipient.phone}: ${smsBody}`);
-    } catch (err) {
-      console.error(`Failed to send SMS for trigger ${params.trigger}:`, err);
-    }
-  }
-
-  // Push (placeholder for FCM/Web Push)
-  if (template.channels.push) {
-    console.log(`Push notification for user ${params.recipient.userId}: ${title}`);
-  }
 }
 
-export async function sendOrderConfirmation(order: any): Promise<void> {
-  await sendNotification({
-    trigger: 'order:confirmed',
-    recipient: { userId: order.userId },
-    variables: {
-      orderId: order._id,
-      amount: String(order.total),
-      paymentMethod: order.paymentMethod,
-    },
+/**
+ * Order status notification helpers
+ */
+export const notifyOrderConfirmed = (userId: string, fcmToken: string | undefined, orderId: string) =>
+  sendPushNotification({
+    userId, fcmToken,
+    title: 'Order Confirmed! 🎉',
+    body: 'Your order has been confirmed and is being prepared.',
+    type: 'order_confirmed',
+    data: { orderId },
   });
-}
 
-export async function sendOrderShipped(order: any): Promise<void> {
-  await sendNotification({
-    trigger: 'order:shipped',
-    recipient: { userId: order.userId },
-    variables: {
-      orderId: order._id,
-      trackingId: order.trackingId || 'N/A',
-    },
+export const notifyOrderShipped = (userId: string, fcmToken: string | undefined, orderId: string) =>
+  sendPushNotification({
+    userId, fcmToken,
+    title: 'Out for Delivery 🚚',
+    body: 'Your order is on its way!',
+    type: 'order_shipped',
+    data: { orderId },
   });
-}
 
-export async function sendOrderDelivered(order: any): Promise<void> {
-  await sendNotification({
-    trigger: 'order:delivered',
-    recipient: { userId: order.userId },
-    variables: {
-      orderId: order._id,
-    },
+export const notifyOrderDelivered = (userId: string, fcmToken: string | undefined, orderId: string) =>
+  sendPushNotification({
+    userId, fcmToken,
+    title: 'Delivered! ✅',
+    body: 'Your order has been delivered. Enjoy!',
+    type: 'order_delivered',
+    data: { orderId },
   });
-}
 
-export async function sendPayoutNotification(vendorId: string, amount: number): Promise<void> {
-  await sendNotification({
-    trigger: 'payout:processed',
-    recipient: { userId: vendorId },
-    variables: {
-      amount: String(amount),
-    },
-  });
-}
-
-export async function sendReturnUpdate(returnRequest: any): Promise<void> {
-  await sendNotification({
-    trigger: 'return:status_changed',
-    recipient: { userId: returnRequest.userId },
-    variables: {
-      returnId: returnRequest._id,
-      status: returnRequest.status,
-      orderId: returnRequest.orderId,
-    },
-  });
-}
+export const notifyNewOrder = (vendorFcmToken: string, orderId: string) => {
+  if (!vendorFcmToken) return Promise.resolve();
+  return messaging.send({
+    token: vendorFcmToken,
+    notification: { title: 'New Order! 🛍️', body: `Order #${orderId.slice(-6)} just came in.` },
+    data: { orderId, type: 'new_order' },
+    android: { priority: 'high' },
+  }).catch((err) => console.warn('Vendor FCM failed:', err.message));
+};

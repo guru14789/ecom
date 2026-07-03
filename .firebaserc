@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "shopsyy-prod",
+    "staging": "shopsyy-staging"
+  }
+}

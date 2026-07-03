@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: shopsyy-backend
+    env: node
+    region: singapore # Adjust as needed
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Remember to add your other environment variables in the Render dashboard:
+      # - FIREBASE_SERVICE_ACCOUNT_PATH (or inject directly via env var parsing if you prefer)
+      # - FIREBASE_PROJECT_ID
+      # - CLIENT_URL (Set this to your Vercel frontend URL once deployed)
+      # - RAZORPAY_KEY_ID
+      # - RAZORPAY_KEY_SECRET
+      # - JWT_SECRET
