@@ -1,6 +1,7 @@
 services:
   - type: web
     name: shopsyy-backend
+    rootDir: backend
     env: node
     region: singapore # Adjust as needed
     plan: free
