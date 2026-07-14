@@ -18,6 +18,7 @@ import flashSaleRouter from './flash-sales';
 import disputeRouter from './disputes';
 import notificationRouter from './notifications';
 import payoutRouter from './payouts';
+import jobsRouter from './jobs';
 
 const router = Router();
 
@@ -42,5 +43,6 @@ router.use('/flash-sales', flashSaleRouter);
 router.use('/disputes', disputeRouter);
 router.use('/notification-templates', notificationRouter);
 router.use('/payouts', payoutRouter);
+router.use('/jobs', jobsRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Plus, Minus, ShoppingBag, Clock, ChevronRight } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, Clock, ChevronRight, Trash2 } from 'lucide-react';
 import { useCart } from '../../store/useCart';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -86,32 +86,56 @@ export const CartDrawer: React.FC = () => {
                   
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <h4 className="font-medium text-sm text-gray-900 leading-tight mb-1">{item.product.name}</h4>
-                      <p className="text-xs text-gray-500">{item.product.unit}</p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-gray-900">₹{item.product.price}</span>
-                        {item.product.discountPercent > 0 && (
-                          <span className="text-[10px] text-gray-400 line-through">₹{item.product.mrp}</span>
-                        )}
-                      </div>
-                      
-                      {/* Quantity Stepper */}
-                      <div className="flex items-center bg-primary text-primary-foreground rounded-lg overflow-hidden h-8 w-[72px] shadow-sm">
-                        <button 
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="flex-1 flex items-center justify-center h-full hover:bg-primary/90 transition-colors"
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-gray-900 line-clamp-2 pr-4 text-sm leading-tight">
+                          {item.product.name}
+                        </h3>
+                        <button
+                          onClick={() => removeItem(item.product.id, item.selectedVariant?.id, item.isSubscription)}
+                          className="p-1 -mr-2 -mt-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                          <Minus className="h-3 w-3 stroke-[3]" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                        <span className="text-xs font-black w-6 text-center">{item.quantity}</span>
-                        <button 
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="flex-1 flex items-center justify-center h-full hover:bg-primary/90 transition-colors"
+                      </div>
+                      {item.selectedVariant && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Variant: {item.selectedVariant.label}
+                        </p>
+                      )}
+                      {item.isSubscription && (
+                        <div className="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded inline-block mt-1">
+                          Subscribe & Save ({item.subscriptionFrequency?.replace('_', ' ')})
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-end justify-between mt-3">
+                      <div className="flex flex-col">
+                        {item.product.discountPercent > 0 && !item.isSubscription && (
+                          <span className="text-xs text-gray-400 line-through leading-none mb-0.5">
+                            ₹{item.selectedVariant ? item.selectedVariant.mrp : item.product.mrp}
+                          </span>
+                        )}
+                        <span className="font-black text-gray-900 leading-none">
+                          ₹{item.isSubscription 
+                              ? (item.selectedVariant ? item.selectedVariant.price : item.product.price) * (1 - (item.product.subscriptionDiscount || 10) / 100)
+                              : (item.selectedVariant ? item.selectedVariant.price : item.product.price)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-gray-50 border rounded-lg p-1">
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.id, item.isSubscription)}
+                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm rounded transition-all"
                         >
-                          <Plus className="h-3 w-3 stroke-[3]" />
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="w-4 text-center font-bold text-sm">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.id, item.isSubscription)}
+                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm rounded transition-all"
+                        >
+                          <Plus className="h-3 w-3" />
                         </button>
                       </div>
                     </div>

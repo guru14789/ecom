@@ -4,7 +4,7 @@ import { getUserByFirebaseUid } from '../lib/firestore/users';
 import { UnauthorizedError } from '../utils/errors';
 
 export interface JwtPayload {
-  sub: string;        // Firebase UID
+  sub: string;
   phone: string;
   role: string;
   vendorId?: string;
@@ -17,10 +17,6 @@ export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
-/**
- * Verify Firebase ID token (issued by Firebase Auth).
- * Attaches `req.user` with uid, phone, role (fetched from Firestore user doc).
- */
 export const authenticate = (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -33,15 +29,14 @@ export const authenticate = (req: AuthenticatedRequest, _res: Response, next: Ne
   (async () => {
     try {
       const decoded = await auth.verifyIdToken(token);
-      // Fetch the user's role from Firestore
       const userDoc = await getUserByFirebaseUid(decoded.uid);
       req.user = {
         sub: decoded.uid,
         phone: decoded.phone_number || '',
         role: userDoc?.role || 'buyer',
         vendorId: userDoc?.vendorId,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: decoded.auth_time || Math.floor(Date.now() / 1000),
+        exp: decoded.exp || Math.floor(Date.now() / 1000) + 3600,
         type: 'access',
       };
       next();

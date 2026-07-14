@@ -1,4 +1,4 @@
-import { db, fromDoc, fromQuery, now, increment } from './client';
+import { db, fromDoc, fromQuery, now, increment, arrayUnion } from './client';
 
 export interface GroupSession {
   id: string;
@@ -26,10 +26,9 @@ export const createGroup = async (data: Omit<GroupSession, 'id' | 'createdAt'>) 
   return { id: ref.id, ...data } as GroupSession;
 };
 export const joinGroup = async (id: string, userId: string) => {
-  const admin2 = require('firebase-admin');
   await col().doc(id).update({
     currentCount: increment(1),
-    participants: admin2.firestore.FieldValue.arrayUnion(userId),
+    participants: arrayUnion(userId),
   });
 };
 export const updateGroupStatus = (id: string, status: GroupSession['status']) =>

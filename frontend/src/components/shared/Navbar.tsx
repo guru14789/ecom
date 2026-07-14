@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, ChevronDown, Menu } from 'lucide-react';
 import { useCart } from '../../store/useCart';
+import { useWishlist } from '../../store/useWishlist';
 import { useAuth } from '../../hooks/useAuth';
 import { MegaMenu } from './MegaMenu';
 import { MobileMenuDrawer } from './MobileMenuDrawer';
-import logo from '@/assets/logo.png';
+import logo from '../../assets/logo.png';
 
 export const Navbar: React.FC = () => {
   const { getItemCount, setIsOpen, getTotal } = useCart();
+  const { getItemCount: getWishlistCount } = useWishlist();
   const { user } = useAuth();
   const [gpsLocation, setGpsLocation] = useState<string | null>(null);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
@@ -48,120 +50,61 @@ export const Navbar: React.FC = () => {
     : gpsLocation || 'Select Location';
   
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
-      <div className="container flex flex-col md:flex-row md:h-20 items-center justify-between gap-4 py-3 md:py-0">
+    <header className="sticky top-0 z-[100] w-full bg-white border-b border-gray-100 shadow-sm">
+      <div className="container flex items-center justify-between h-20 gap-4">
         
-        {/* Top Row for Mobile (Logo + Location + Profile/Cart) */}
-        <div className="flex items-center justify-between w-full md:w-auto gap-4">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-4">
+          <button 
+            className="md:hidden p-1 text-gray-900"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="shopyng" className="h-16 w-auto" />
+          </Link>
+        </div>
+
+        {/* Center: Navigation Links (Desktop) */}
+        <nav className="hidden md:flex items-center gap-8">
+          <Link to="/" className="text-sm font-bold text-primary transition-colors">Home</Link>
+          <Link to="/app" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">Our App</Link>
+        </nav>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-4 md:gap-6 shrink-0">
           
-          <div className="flex items-center gap-4">
-            {/* Mobile Hamburger */}
-            <button 
-              className="md:hidden p-1 text-gray-900"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+          <Link to="/profile/wishlist" className="hidden md:flex p-2 text-gray-400 hover:text-primary transition-colors relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            {getWishlistCount() > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            )}
+          </Link>
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-1">
-              <img src={logo} alt="Shopyng" className="w-32 md:w-36 h-auto" />
-            </Link>
-            
-            <div className="w-px h-10 bg-black/10 hidden md:block mx-2"></div>
-            
-            {/* Location Picker */}
-            <div className="flex flex-col">
-              <span className="font-extrabold text-gray-900 text-[15px] leading-tight">Delivery in 10 minutes</span>
-              <div className="flex items-center text-gray-800 text-sm">
-                <span className="truncate max-w-[150px] font-medium">{displayLocation}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Actions (Mobile) */}
-          <div className="flex items-center gap-3 md:hidden">
-            <Link to="/profile" className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors border border-gray-200">
-              <User className="h-5 w-5 text-gray-900 stroke-[1.5]" />
-            </Link>
-            <button 
-              onClick={() => setIsOpen(true)}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 rounded-lg font-bold transition-colors shadow-sm"
-            >
-              <ShoppingCart className="h-5 w-5 stroke-[1.5]" />
-            </button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex-1 w-full md:max-w-2xl relative">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400 stroke-[1.5]" />
-          </div>
-          <input
-            type="text"
-            className="w-full h-12 pl-11 pr-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-[15px]"
-            placeholder="Search products, brands and categories..."
-          />
-        </div>
-
-        {/* Right Actions (Desktop) */}
-        <div className="hidden md:flex items-center gap-6 shrink-0">
           {user ? (
-            <Link to="/profile" className="flex items-center gap-2 text-[15px] font-medium text-gray-900 hover:text-black transition-colors">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                <User className="h-4 w-4 text-gray-900" />
+            <Link to="/profile" className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                <img src={`https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=e0f2fe&color=0369a1`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
-              <span className="truncate max-w-[100px]">{user.displayName || 'Profile'}</span>
             </Link>
           ) : (
-            <Link to="/profile" className="flex items-center gap-2 text-[15px] font-medium text-gray-900 hover:text-black transition-colors">
+            <Link to="/profile" className="hidden md:flex text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               Login
             </Link>
           )}
           
           <button 
             onClick={() => setIsOpen(true)}
-            className="flex items-center gap-3 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-xl font-bold transition-transform active:scale-95 shadow-sm"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-all relative"
           >
-            <ShoppingCart className="h-6 w-6 stroke-[1.5]" />
-            <div className="flex flex-col items-start text-xs leading-tight">
-              <span className="font-extrabold">{getItemCount()} items</span>
-              <span className="opacity-90 font-medium">₹{getTotal()}</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Secondary Navbar for Categories (Desktop) */}
-      <div className="hidden md:flex border-t border-gray-100 bg-white">
-        <div className="container flex items-center relative">
-          
-          {/* All Categories Dropdown Trigger */}
-          <div 
-            className="relative group"
-            onMouseEnter={() => setIsMegaMenuOpen(true)}
-            onMouseLeave={() => setIsMegaMenuOpen(false)}
-          >
-            <button className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2.5 font-bold text-sm tracking-wide transition-colors">
-              <Menu className="w-5 h-5" />
-              ALL CATEGORIES
-            </button>
-            
-            {/* Mega Menu Dropdown */}
-            {isMegaMenuOpen && (
-              <MegaMenu onClose={() => setIsMegaMenuOpen(false)} />
+            <ShoppingCart className="h-5 w-5 stroke-[1.5]" />
+            {getItemCount() > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border border-white">
+                {getItemCount()}
+              </span>
             )}
-          </div>
-
-          {/* Quick Links */}
-          <nav className="flex items-center gap-6 ml-6">
-            <Link to="/category/electronics/mobiles" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Mobiles</Link>
-            <Link to="/category/fashion" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Fashion</Link>
-            <Link to="/category/electronics" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Electronics</Link>
-            <Link to="/category/home-kitchen" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Home & Kitchen</Link>
-            <Link to="/category/groceries" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Daily Groceries</Link>
-          </nav>
+          </button>
         </div>
       </div>
       

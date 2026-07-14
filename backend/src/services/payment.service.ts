@@ -16,5 +16,10 @@ export function verifyRazorpaySignature(orderId: string, paymentId: string, sign
     .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
     .update(`${orderId}|${paymentId}`)
     .digest('hex');
-  return generatedSignature === signature;
+  try {
+    if (generatedSignature.length !== signature.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(generatedSignature), Buffer.from(signature));
+  } catch {
+    return false;
+  }
 }

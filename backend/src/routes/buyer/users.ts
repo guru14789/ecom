@@ -4,6 +4,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { getUserById, updateUser } from '../../lib/firestore/users';
 import { getUserNotifications, markAllRead, markRead } from '../../lib/firestore/notifications';
 import { getProductById } from '../../lib/firestore/products';
+import { db, arrayUnion, arrayRemove } from '../../lib/firestore/client';
 
 const router = Router();
 
@@ -65,17 +66,32 @@ router.delete('/me/addresses/:id', async (req: AuthenticatedRequest, res: Respon
 
 router.get('/me/wishlist', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    // simplified wishlist (not in schema, skipping)
-    res.json({ data: [] });
+    const user = await getUserById(req.user!.sub);
+    const wishlistIds: string[] = (user as any)?.wishlist || [];
+    if (wishlistIds.length === 0) return res.json({ data: [] });
+    const products = await Promise.all(
+      wishlistIds.map(id => getProductById(id))
+    );
+    res.json({ data: products.filter(Boolean) });
   } catch (err) { next(err); }
 });
 
 router.post('/me/wishlist/:productId', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  res.json({ success: true });
+  try {
+    await db.collection('users').doc(req.user!.sub).update({
+      wishlist: arrayUnion(req.params.productId),
+    });
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
 router.delete('/me/wishlist/:productId', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  res.json({ success: true });
+  try {
+    await db.collection('users').doc(req.user!.sub).update({
+      wishlist: arrayRemove(req.params.productId),
+    });
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
 router.get('/me/wallet', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

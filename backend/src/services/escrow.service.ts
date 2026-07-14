@@ -1,11 +1,5 @@
 import { updateOrderPayment } from '../lib/firestore/orders';
-
-/**
- * Escrow is simplified: instead of a separate PG table,
- * the Razorpay payment reference is stored directly on the Order document.
- * The "hold" state is simply paymentStatus='pending' with a razorpayOrderId set.
- * The "release" state is paymentStatus='paid' with razorpayPaymentId set.
- */
+import { now } from '../lib/firestore/client';
 
 export async function holdPayment(params: {
   orderId: string;
@@ -21,11 +15,10 @@ export async function releasePayment(params: {
   orderId: string;
   razorpayPaymentId: string;
 }): Promise<void> {
-  const admin = require('firebase-admin');
   await updateOrderPayment(params.orderId, {
     razorpayPaymentId: params.razorpayPaymentId,
     paymentStatus: 'paid',
-    paidAt: admin.firestore.Timestamp.now(),
+    paidAt: now() as FirebaseFirestore.Timestamp,
   });
 }
 

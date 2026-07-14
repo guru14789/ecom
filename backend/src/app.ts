@@ -9,6 +9,9 @@ import { db } from './lib/firestore/client'; // initializes Firebase Admin
 import buyerRouter from './routes/buyer';
 import vendorRouter from './routes/vendor';
 import adminRouter from './routes/admin';
+import vendorRegisterRouter from './routes/public/vendor-register';
+import shippingRouter from './routes/public/shipping';
+import publicJobsRouter from './routes/public/jobs';
 
 const app = express();
 
@@ -62,6 +65,9 @@ app.get('/health', async (_req: Request, res: Response) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api', buyerRouter);
+app.use('/api/public/vendor/register', vendorRegisterRouter);
+app.use('/api/public/shipping', shippingRouter);
+app.use('/api/public/jobs', publicJobsRouter);
 app.use('/api/vendor', vendorRouter);
 app.use('/api/admin', adminRouter);
 

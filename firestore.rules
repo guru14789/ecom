@@ -81,6 +81,17 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
+    // ─── Chats ────────────────────────────────────────────────────────────
+    match /chats/{chatId} {
+      allow read, update: if isAuthenticated();
+      allow create: if false; // backend creates chats
+      
+      match /messages/{messageId} {
+        allow read, create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+
     // ─── Reviews ─────────────────────────────────────────────────────────
     match /reviews/{reviewId} {
       allow read: if true;

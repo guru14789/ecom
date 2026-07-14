@@ -101,12 +101,8 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onCl
           </Link>
         </div>
 
-        {/* Categories Accordion */}
         <div className="flex-1 overflow-y-auto">
-          <h3 className="px-4 py-4 font-black text-gray-900 uppercase text-xs tracking-wider">All Categories</h3>
-          <div className="pb-10">
-            {CATEGORY_DATA.map(cat => renderCategoryNode(cat, 0))}
-          </div>
+          {/* Categories removed from mobile menu */}
         </div>
       </div>
     </>

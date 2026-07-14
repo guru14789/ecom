@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('buyer' | 'vendor' | 'admin')[];
+  allowedRoles?: ('buyer' | 'vendor' | 'vendor_admin' | 'admin' | 'platform_admin' | 'super_admin')[];
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
@@ -20,13 +20,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   }
 
   if (!user) {
-    // Redirect to login (buyer root for now, or a specific auth page)
+    // Redirect to login profile page
     // We can pass state to redirect back after login
-    return <Navigate to="/?login=true" state={{ from: location }} replace />;
+    return <Navigate to="/profile" state={{ from: location }} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Role not authorized, send back to home
+    // Role not authorized, send them to their respective home
+    if (['admin', 'platform_admin', 'super_admin'].includes(user.role)) {
+      return <Navigate to="/admin" replace />;
+    }
+    if (['vendor', 'vendor_admin'].includes(user.role)) {
+      return <Navigate to="/vendor" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

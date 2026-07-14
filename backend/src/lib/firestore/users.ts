@@ -1,4 +1,5 @@
 import { db, fromDoc, fromQuery, now, arrayUnion } from './client';
+import admin from './client';
 
 export interface UserAddress {
   id: string;
@@ -31,6 +32,7 @@ export interface User {
   isPhoneVerified: boolean;
   isEmailVerified: boolean;
   addresses: UserAddress[];
+  wishlist?: string[];
   walletBalance: number;
   walletTransactions: WalletTransaction[];
   referralCode: string;
@@ -61,10 +63,26 @@ export async function getUserByPhone(phoneNumber: string): Promise<User | null> 
   return fromDoc<User>(snap.docs[0]);
 }
 
-export async function getUserByFirebaseUid(uid: string): Promise<User | null> {
-  const snap = await col().where('firebaseUid', '==', uid).limit(1).get();
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const snap = await col().where('email', '==', email).limit(1).get();
   if (snap.empty) return null;
   return fromDoc<User>(snap.docs[0]);
+}
+
+export async function getUserByFirebaseUid(uid: string): Promise<User | null> {
+  // First try direct document lookup (frontend sets doc ID = uid)
+  const docSnap = await col().doc(uid).get();
+  if (docSnap.exists) return fromDoc<User>(docSnap);
+
+  // Fallback to querying by 'uid' field (frontend convention)
+  let querySnap = await col().where('uid', '==', uid).limit(1).get();
+  if (!querySnap.empty) return fromDoc<User>(querySnap.docs[0]);
+
+  // Fallback to querying by 'firebaseUid' field (backend convention)
+  querySnap = await col().where('firebaseUid', '==', uid).limit(1).get();
+  if (!querySnap.empty) return fromDoc<User>(querySnap.docs[0]);
+
+  return null;
 }
 
 export async function createUser(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
@@ -118,12 +136,7 @@ export async function updateWallet(userId: string, amount: number, reason: strin
   const type = amount >= 0 ? 'credit' : 'debit';
   const txn: WalletTransaction = { amount: Math.abs(amount), type, reason, createdAt: now() as FirebaseFirestore.Timestamp };
   await col().doc(userId).update({
-    walletBalance: db.collection('_').doc().id ? 0 : 0, // placeholder for FieldValue.increment
-    updatedAt: now(),
-  });
-  // Use atomic increment
-  await col().doc(userId).update({
-    walletBalance: require('firebase-admin').firestore.FieldValue.increment(amount),
+    walletBalance: admin.firestore.FieldValue.increment(amount),
     walletTransactions: arrayUnion(txn),
     updatedAt: now(),
   });

@@ -9,9 +9,9 @@ const router = Router();
 router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const [users, products, orders] = await Promise.all([
-      listUsers({ limit: 1000 }),
-      listProducts({ limit: 1000 }),
-      getAllOrders({ limit: 1000 })
+      listUsers({ limit: 100 }),
+      listProducts({ limit: 100 }),
+      getAllOrders({ limit: 100 })
     ]);
 
     const totalRevenue = orders

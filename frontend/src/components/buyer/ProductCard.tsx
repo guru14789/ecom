@@ -10,11 +10,19 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { items, addItem, updateQuantity } = useCart();
+  const [localQuantity, setLocalQuantity] = React.useState(1);
   
   const handleAddItem = (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      addItem(product);
+      // If already in cart, update quantity
+      if (quantityInCart > 0) {
+        updateQuantity(product.id, quantityInCart + localQuantity);
+      } else {
+        addItem(product, localQuantity);
+      }
+      setLocalQuantity(1); // Reset after adding
+      toast.success('Added to cart');
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -34,16 +42,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       )}
       
       {/* Image Container */}
-      <div className="aspect-square bg-white rounded-lg mb-4 flex items-center justify-center p-2 relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+      <div className="aspect-square bg-gray-50/50 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
         {product.images?.[0] ? (
           <img 
             src={product.images[0]} 
             alt={product.name} 
-            className="object-contain w-full h-full" 
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500" 
             loading="lazy"
           />
         ) : (
-          <div className="text-5xl opacity-10 drop-shadow-sm">🥦</div>
+          <div className="text-5xl opacity-10 drop-shadow-sm group-hover:scale-110 transition-transform duration-500">🥦</div>
         )}
       </div>
 
@@ -63,52 +71,39 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <h3 className="font-semibold text-gray-800 text-[13px] leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
           {product.name}
         </h3>
-        <div className="flex items-center gap-1 mb-2">
-          <div className="flex items-center text-[10px] font-bold text-secondary bg-secondary/10 px-1 rounded-sm">
-            {product.rating} ★
-          </div>
-          <span className="text-[10px] text-gray-400">({product.reviewCount})</span>
+        <p className="text-[10px] text-gray-400 mb-2">{product.unit}</p>
+        
+        <div className="font-bold text-gray-900 text-[15px] leading-none mb-3">
+          ${product.price}
         </div>
         
-        <div className="mt-auto flex items-end justify-between pt-1 relative h-10">
-          <div className="flex flex-col justify-end h-full">
-            {product.discountPercent > 0 && (
-              <span className="text-[11px] text-gray-400 line-through decoration-gray-300">
-                ₹{product.mrp}
-              </span>
-            )}
-            <span className="font-bold text-gray-900 text-[15px] leading-none">
-              ₹{product.price}
-            </span>
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setLocalQuantity(Math.max(1, localQuantity - 1)); }}
+              className="w-6 h-6 flex items-center justify-center rounded bg-gray-50 text-gray-400 hover:bg-gray-100 transition-colors"
+            >
+              <Minus className="h-3 w-3 stroke-[3]" />
+            </button>
+            <span className="text-sm font-bold w-4 text-center">{localQuantity}</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setLocalQuantity(localQuantity + 1); }}
+              className="w-6 h-6 flex items-center justify-center rounded bg-gray-50 text-primary hover:bg-gray-100 transition-colors"
+            >
+              <Plus className="h-3 w-3 stroke-[3]" />
+            </button>
           </div>
 
-          {/* Add to Cart Action */}
-          <div className="absolute right-0 bottom-0 h-9 w-[76px]">
-            {quantityInCart === 0 ? (
-              <button 
-                onClick={handleAddItem}
-                className="w-full h-full border border-primary bg-white text-primary hover:bg-primary hover:text-primary-foreground rounded-lg text-sm font-black shadow-sm transition-all duration-200 uppercase tracking-wide"
-              >
-                Add
-              </button>
-            ) : (
-              <div className="w-full h-full flex items-center justify-between bg-primary text-primary-foreground rounded-lg overflow-hidden shadow-md transition-all duration-200 scale-105">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, quantityInCart - 1); }}
-                  className="w-1/3 flex items-center justify-center h-full hover:bg-primary/90 transition-colors"
-                >
-                  <Minus className="h-3.5 w-3.5 stroke-[3]" />
-                </button>
-                <span className="w-1/3 text-xs font-black text-center">{quantityInCart}</span>
-                <button 
-                  onClick={handleAddItem}
-                  className="w-1/3 flex items-center justify-center h-full hover:bg-primary/90 transition-colors"
-                >
-                  <Plus className="h-3.5 w-3.5 stroke-[3]" />
-                </button>
-              </div>
-            )}
-          </div>
+          <button 
+            onClick={handleAddItem}
+            className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-transform active:scale-95 shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </button>
         </div>
       </div>
     </div>

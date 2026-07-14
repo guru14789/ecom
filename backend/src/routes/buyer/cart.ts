@@ -41,4 +41,13 @@ router.delete('/remove/:productId', async (req: AuthenticatedRequest, res: Respo
   } catch (err) { next(err); }
 });
 
+router.post('/sync', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const { items } = req.body;
+    const { setCart } = await import('../../lib/firestore/cart');
+    await setCart(req.user!.sub, items || []);
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
 export default router;

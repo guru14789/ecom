@@ -16,18 +16,19 @@ export const authLimiter = rateLimit({
   handler: (_req, _res, next) => next(new RateLimitError('Too many auth attempts')),
 });
 
-export const uploadLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (_req, _res, next) => next(new RateLimitError('Too many uploads')),
-});
+// Upload and order limiters — reserved for future use
+// export const uploadLimiter = rateLimit({
+//   windowMs: 60 * 60 * 1000,
+//   max: 50,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   handler: (_req, _res, next) => next(new RateLimitError('Too many uploads')),
+// });
 
-export const orderLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (_req, _res, next) => next(new RateLimitError('Too many order requests')),
-});
+// export const orderLimiter = rateLimit({
+//   windowMs: 60 * 60 * 1000,
+//   max: 100,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   handler: (_req, _res, next) => next(new RateLimitError('Too many order requests')),
+// });

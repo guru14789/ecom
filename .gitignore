@@ -12,3 +12,8 @@ opencode.json
 docker-compose.yml
 **/dist/
 shopyng-32aa3-firebase-adminsdk-fbsvc-590e9081ed.json
+.env*
+*-firebase-adminsdk-*.json
+image.png
+test-page.js
+

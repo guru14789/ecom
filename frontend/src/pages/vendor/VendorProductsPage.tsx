@@ -1,41 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../hooks/useAuth';
 import type { Product } from '../../types';
 
 export const VendorProductsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (!user) return;
+  const { data: productsData, isLoading: loading, refetch } = useQuery({
+    queryKey: ['vendorProducts', user?.uid],
+    queryFn: async () => {
+      const { vendorApi } = await import('../../lib/api');
+      const res = await vendorApi.products.list();
+      return res.data;
+    },
+    enabled: !!user
+  });
 
-    const q = query(collection(db, 'products'), where('vendorId', '==', user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const prods: Product[] = [];
-      snapshot.forEach((doc) => {
-        prods.push({ id: doc.id, ...doc.data() } as Product);
-      });
-      setProducts(prods);
-      setLoading(false);
-    });
+  const products = productsData || [];
 
-    return () => unsubscribe();
-  }, [user]);
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      const { vendorApi } = await import('../../lib/api');
+      await vendorApi.products.delete(id);
+      refetch();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-bold text-gray-900">Products</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-[2rem] border shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -z-0"></div>
+        <div className="relative z-10">
+          <h1 className="text-2xl font-black text-blue-950 tracking-tight">Products</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your catalogue and inventory.</p>
+        </div>
         
-        <div className="flex w-full sm:w-auto items-center gap-3">
+        <div className="flex w-full sm:w-auto items-center gap-3 relative z-10">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input 
@@ -43,16 +52,16 @@ export const VendorProductsPage: React.FC = () => {
               placeholder="Search products..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium transition-all"
             />
           </div>
-          <Link to="/vendor/products/new" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 shrink-0">
+          <Link to="/vendor/products/new" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shrink-0">
             <Plus className="h-4 w-4" /> Add Product
           </Link>
         </div>
       </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border rounded-[2rem] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-600 border-b">
@@ -105,10 +114,10 @@ export const VendorProductsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                        <Link to={`/vendor/products/edit/${product.id}`} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                           <Edit2 className="h-4 w-4" />
-                        </button>
-                        <button className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                        </Link>
+                        <button onClick={() => handleDelete(product.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

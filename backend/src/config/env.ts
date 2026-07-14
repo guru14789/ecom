@@ -40,4 +40,12 @@ export const env = {
 
   // JWT (kept for existing frontend token flow if needed)
   JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+  
+  // Verification APIs
+  GST_VERIFY_API_KEY: process.env.GST_VERIFY_API_KEY || '',
+
+  // Cloudflare Images
+  CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID || '',
+  CLOUDFLARE_IMAGES_API_TOKEN: process.env.CLOUDFLARE_IMAGES_API_TOKEN || '',
+  CLOUDFLARE_IMAGE_HASH: process.env.CLOUDFLARE_IMAGE_HASH || '',
 };

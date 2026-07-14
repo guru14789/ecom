@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Navbar } from '../shared/Navbar';
 import { CartDrawer } from './CartDrawer';
+import { ChatWidget } from '../chat/ChatWidget';
+import { Footer } from '../shared/Footer';
 import { Home, Search, Package, User } from 'lucide-react';
 
 export const BuyerLayout: React.FC = () => {
@@ -9,23 +11,13 @@ export const BuyerLayout: React.FC = () => {
   const currentPath = location.pathname;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-white pb-16 md:pb-0">
       <Navbar />
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:py-6">
         <Outlet />
       </main>
       
-      {/* Footer (Hidden on mobile to prioritize bottom nav) */}
-      <footer className="hidden md:flex bg-white border-t mt-auto py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} shopsyy. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact Us</a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
       
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-between px-6 py-2 z-40 pb-safe">
@@ -48,6 +40,7 @@ export const BuyerLayout: React.FC = () => {
       </div>
 
       <CartDrawer />
+      <ChatWidget />
     </div>
   );
 };

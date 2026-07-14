@@ -3,11 +3,17 @@ import admin from 'firebase-admin';
 // Initialize Firebase Admin if not already done
 if (!admin.apps.length) {
   const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  console.log("FIREBASE_SERVICE_ACCOUNT_PATH is:", serviceAccountPath);
+  console.log("CWD is:", process.cwd());
+  
   const credential = serviceAccountPath
     ? admin.credential.cert(require(serviceAccountPath))
     : admin.credential.applicationDefault();
 
-  admin.initializeApp({ credential });
+  admin.initializeApp({
+    credential,
+    storageBucket: 'sree-projects-78f50.appspot.com'
+  });
 }
 
 export const db = admin.firestore();

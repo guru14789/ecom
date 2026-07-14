@@ -7,7 +7,7 @@ import {
   signInWithPhoneNumber
 } from 'firebase/auth';
 import type { User as FirebaseUser, ConfirmationResult } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { User } from '../types';
 
@@ -16,37 +16,50 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribeFirestore: (() => void) | null = null;
+
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch custom user profile from Firestore
+        // Listen to custom user profile from Firestore in real-time
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
         
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as User);
-        } else {
-          // Create new user profile if first login
-          const newUser: User = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || undefined,
-            phone: firebaseUser.phoneNumber || '',
-            displayName: firebaseUser.displayName || undefined,
-            photoURL: firebaseUser.photoURL || undefined,
-            role: 'buyer', // default role
-            addresses: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          await setDoc(userDocRef, newUser);
-          setUser(newUser);
-        }
+        unsubscribeFirestore = onSnapshot(userDocRef, async (docSnap) => {
+          if (docSnap.exists()) {
+            setUser(docSnap.data() as User);
+            setLoading(false);
+          } else {
+            // Create new user profile if first login
+            const newUser: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || null,
+              phone: firebaseUser.phoneNumber || '',
+              displayName: firebaseUser.displayName || null,
+              photoURL: firebaseUser.photoURL || null,
+              role: 'buyer', // default role
+              addresses: [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await setDoc(userDocRef, newUser);
+            // The setDoc will trigger the snapshot again, setting the user
+          }
+        });
       } else {
+        if (unsubscribeFirestore) {
+          unsubscribeFirestore();
+          unsubscribeFirestore = null;
+        }
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+      }
+    };
   }, []);
 
   const signInWithGoogle = async () => {

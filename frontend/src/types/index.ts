@@ -7,6 +7,7 @@ export interface User {
   role: 'buyer' | 'vendor' | 'admin';
   addresses: Address[];
   fcmToken?: string;
+  pointsBalance?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +64,12 @@ export interface Product {
   brand?: string;
   specifications?: Record<string, string>;
   variants?: ProductVariant[];
+  taxRate?: number;
+  taxInclusive?: boolean;
+  productType?: 'physical' | 'digital';
+  digitalFileUrl?: string;
+  isSubscriptionEligible?: boolean;
+  subscriptionDiscount?: number;
   dimensions?: {
     length: number;
     width: number;
@@ -96,6 +103,8 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedVariant?: ProductVariant;
+  isSubscription?: boolean;
+  subscriptionFrequency?: '1_week' | '2_weeks' | '1_month' | '2_months';
 }
 
 export interface CategoryNode {

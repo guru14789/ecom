@@ -12,6 +12,7 @@ import returnRouter from './returns';
 import paymentRouter from './payments';
 import checkoutRouter from './checkout';
 import webhookRouter from './webhook';
+import chatRouter from './chat';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.use('/questions', questionRouter);
 router.use('/returns', returnRouter);
 router.use('/payments', paymentRouter);
 router.use('/checkout', checkoutRouter);
+router.use('/chat', chatRouter);
 
 // ─── Webhook (Razorpay) ───────────────────────────────────────────────────────
 router.use('/webhook', webhookRouter);

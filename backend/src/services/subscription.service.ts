@@ -1,4 +1,5 @@
 import { getSubscription, setSubscription, SubscriptionTier } from '../lib/firestore/vendors';
+import admin from '../lib/firestore/client';
 import { AppError } from '../utils/errors';
 
 export interface SubscriptionPlan {
@@ -45,7 +46,6 @@ export async function upgradeSubscription(
   const plan = SUBSCRIPTION_TIERS[tierId];
   if (!plan) throw new AppError('INVALID_TIER', 'Invalid subscription tier', 400);
 
-  const admin = require('firebase-admin');
   const tier: SubscriptionTier = {
     tier: tierId as SubscriptionTier['tier'],
     price: plan.price,
@@ -53,7 +53,7 @@ export async function upgradeSubscription(
     status: 'active',
     startedAt: admin.firestore.Timestamp.now(),
     expiresAt: admin.firestore.Timestamp.fromDate(
-      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     ),
   };
 

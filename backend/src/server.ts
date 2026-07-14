@@ -1,8 +1,8 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import app from './app';
 import { env } from './config/env';
+import app from './app';
 
 const httpServer = createServer(app);
 
@@ -14,6 +14,9 @@ const io = new Server(httpServer, {
   },
 });
 
+// Socket.IO authentication: uses a JWT passed via handshake auth.token.
+// In production, verify the token using Firebase Admin SDK instead of JWT_SECRET
+// so the same Firebase token used for REST API calls also works for WebSocket.
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error('Auth token required'));
@@ -77,6 +80,6 @@ export function emitToOrder(orderId: string, event: string, data: Record<string,
   io.to(`order:${orderId}`).emit(event, data);
 }
 
-httpServer.listen(env.PORT, () => {
+httpServer.listen(env.PORT, '0.0.0.0', () => {
   console.log(`API Server running on port ${env.PORT}`);
 });

@@ -25,6 +25,17 @@ export const useProducts = (vendorId?: string, category?: string) => {
   });
 };
 
+export const useHomepage = () => {
+  return useQuery({
+    queryKey: ['homepage'],
+    queryFn: async () => {
+      const { buyerApi } = await import('../lib/api');
+      const response = await buyerApi.homepage();
+      return response.data;
+    }
+  });
+};
+
 export const useProduct = (productId: string) => {
   return useQuery({
     queryKey: ['products', productId],

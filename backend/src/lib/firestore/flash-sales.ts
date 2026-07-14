@@ -16,11 +16,15 @@ const col = () => db.collection('flash_sales');
 export const getFlashSaleById = (id: string) => fromDoc<FlashSale>(col().doc(id).get() as any);
 export const getActiveFlashSales = async () => {
   const now2 = new Date();
-  return fromQuery<FlashSale>(await col()
-    .where('isActive', '==', true)
-    .where('startDate', '<=', now2)
-    .where('endDate', '>=', now2)
-    .get());
+  const snap = await col().where('isActive', '==', true).get();
+  const sales = fromQuery<FlashSale>(snap);
+  
+  // Apply date range filters in-memory to prevent index issues
+  return sales.filter(s => {
+    const start = s.startDate?.toDate ? s.startDate.toDate() : new Date(0);
+    const end = s.endDate?.toDate ? s.endDate.toDate() : new Date(0);
+    return start <= now2 && end >= now2;
+  });
 };
 export const createFlashSale = async (data: Omit<FlashSale, 'id' | 'createdAt'>) => {
   const ref = col().doc();

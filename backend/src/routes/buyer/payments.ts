@@ -22,9 +22,6 @@ router.post('/create-order', async (req: AuthenticatedRequest, res: Response, ne
     const user = await getUserById(req.user!.sub);
     if (!user) throw new NotFoundError('User not found');
 
-    const address = user.addresses?.find((a: any) => a.id === addressId || a._id?.toString() === addressId);
-    if (!address) throw new AppError('VALIDATION_ERROR', 'Delivery address not found', 422);
-
     const cart = await getCart(req.user!.sub);
     if (!cart || cart.items.length === 0) {
       throw new AppError('VALIDATION_ERROR', 'Cart is empty', 422);
@@ -39,16 +36,44 @@ router.post('/create-order', async (req: AuthenticatedRequest, res: Response, ne
       totalPrice: number;
       variantId?: string;
       vendorId?: string;
+      taxRate?: number;
+      taxAmount?: number;
+      productType?: 'physical' | 'digital';
+      digitalFileUrl?: string;
     }> = [];
     let subtotal = 0;
+    let taxTotal = 0;
 
     for (const cartItem of cart.items) {
       const product = await getProductById(cartItem.productId);
       if (!product) continue;
 
-      const unitPrice = cartItem.isGroupBuy ? (product.groupPrice || product.price) : product.price;
+      let unitPrice = cartItem.isGroupBuy ? (product.groupPrice || product.price) : product.price;
+      
+      if (cartItem.variantId) {
+        const variant = product.variants?.find(v => v.id === cartItem.variantId);
+        if (variant && variant.priceModifier) {
+          unitPrice += variant.priceModifier;
+        }
+      }
+
+      const taxRate = product.taxRate || 0;
+      let unitTax = 0;
+
+      if (taxRate > 0) {
+        if (product.taxInclusive) {
+          unitTax = unitPrice - (unitPrice / (1 + taxRate / 100));
+          subtotal += (unitPrice - unitTax) * cartItem.quantity;
+        } else {
+          unitTax = unitPrice * (taxRate / 100);
+          subtotal += unitPrice * cartItem.quantity;
+        }
+        taxTotal += unitTax * cartItem.quantity;
+      } else {
+        subtotal += unitPrice * cartItem.quantity;
+      }
+
       const totalPrice = unitPrice * cartItem.quantity;
-      subtotal += totalPrice;
 
       orderItems.push({
         productId: product.id!,
@@ -59,18 +84,23 @@ router.post('/create-order', async (req: AuthenticatedRequest, res: Response, ne
         totalPrice,
         variantId: cartItem.variantId,
         vendorId: product.vendorId,
+        taxRate,
+        taxAmount: unitTax * cartItem.quantity,
+        productType: product.productType || 'physical',
+        digitalFileUrl: product.digitalFileUrl,
       });
     }
 
-    const deliveryFee = subtotal >= 500 ? 0 : subtotal >= 199 ? 15 : 25;
-    const handlingFee = 5;
-    const total = subtotal + handlingFee + deliveryFee;
+    const hasPhysicalItems = orderItems.some(i => i.productType !== 'digital');
+    
+    let deliveryAddress: any = {
+      houseNo: 'N/A', area: 'Digital Delivery', pincode: '000000', city: 'N/A', state: 'N/A'
+    };
 
-    const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const order = await createOrder({
-      userId: req.user!.sub,
-      items: orderItems,
-      deliveryAddress: {
+    if (hasPhysicalItems) {
+      const address = user.addresses?.find((a: any) => a.id === addressId || a._id?.toString() === addressId);
+      if (!address) throw new AppError('VALIDATION_ERROR', 'Delivery address is required for physical products', 422);
+      deliveryAddress = {
         houseNo: address.houseNo,
         area: address.area,
         pincode: address.pincode,
@@ -78,20 +108,33 @@ router.post('/create-order', async (req: AuthenticatedRequest, res: Response, ne
         city: address.city,
         state: address.state,
         tag: address.tag,
-      },
+      };
+    }
+
+    const deliveryFee = hasPhysicalItems ? (subtotal >= 500 ? 0 : subtotal >= 199 ? 15 : 25) : 0;
+    const handlingFee = Math.round((subtotal + taxTotal) * 0.02 * 100) / 100;
+    const total = subtotal + taxTotal + handlingFee + deliveryFee;
+
+    const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const order = await createOrder({
+      userId: req.user!.sub,
+      items: orderItems,
+      deliveryAddress,
       subtotal,
       discount: 0,
       couponDiscount: 0,
       handlingFee,
       deliveryFee,
+      taxTotal,
       total,
       vendorOrders: [],
+      vendorIds: [...new Set(orderItems.map(i => i.vendorId).filter(Boolean) as string[])],
       paymentMethod: 'upi',
       paymentStatus: 'pending',
       status: 'pending',
       timeline: [{
         status: 'pending',
-        timestamp: now() as admin.firestore.Timestamp,
+        timestamp: admin.firestore.Timestamp.now(),
         note: 'Order created, awaiting payment',
         updatedBy: 'system',
       }],

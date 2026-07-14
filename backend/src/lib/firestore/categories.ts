@@ -15,9 +15,12 @@ const col = () => db.collection('categories');
 
 export const getCategoryById = (id: string) => fromDoc<Category>(col().doc(id).get() as any);
 export const listCategories = async (activeOnly = true) => {
-  let q = col().orderBy('sortOrder') as FirebaseFirestore.Query;
+  let q = col() as FirebaseFirestore.Query;
   if (activeOnly) q = q.where('isActive', '==', true);
-  return fromQuery<Category>(await q.get());
+  const snap = await q.get();
+  const cats = fromQuery<Category>(snap);
+  cats.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  return cats;
 };
 export const createCategory = async (data: Omit<Category, 'id' | 'createdAt'>) => {
   const ref = col().doc();

@@ -19,7 +19,19 @@ export const createPayout = async (data: Omit<Payout, 'id' | 'createdAt'>) => {
   return { id: ref.id, ...data } as Payout;
 };
 export const updatePayout = (id: string, data: Partial<Payout>) => col().doc(id).update(data);
-export const getPayoutsByVendor = async (vendorId: string, limit = 20) =>
-  fromQuery<Payout>(await col().where('vendorId', '==', vendorId).orderBy('createdAt', 'desc').limit(limit).get());
+export const getPayoutsByVendor = async (vendorId: string, limit = 20) => {
+  const snapshot = await col().where('vendorId', '==', vendorId).get();
+  let payouts = fromQuery<Payout>(snapshot);
+  payouts.sort((a, b) => {
+    const aTime = (a.createdAt as any)?.toMillis ? (a.createdAt as any).toMillis() : 0;
+    const bTime = (b.createdAt as any)?.toMillis ? (b.createdAt as any).toMillis() : 0;
+    return bTime - aTime;
+  });
+  return payouts.slice(0, limit);
+};
 export const getPendingPayouts = async () =>
-  fromQuery<Payout>(await col().where('status', '==', 'pending').orderBy('createdAt').get());
+  fromQuery<Payout>(await col().where('status', '==', 'pending').get()).sort((a, b) => {
+    const aTime = (a.createdAt as any)?.toMillis ? (a.createdAt as any).toMillis() : 0;
+    const bTime = (b.createdAt as any)?.toMillis ? (b.createdAt as any).toMillis() : 0;
+    return aTime - bTime;
+  });
